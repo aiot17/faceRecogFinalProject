@@ -1,0 +1,51 @@
+<!--載入 query-->
+<!-- <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js'></script> -->
+<script src="http://code.jquery.com/jquery.js"></script>
+
+<!--跨域 IFRAME-->
+<!-- <iframe name="WFU_frame" src="https://demo.wfublog.com/p/cross-domain-postmessage-iframe.html" onload="sendMessage()" style="width: 100%; height: 300px;"></iframe> -->
+<iframe name="faceLoginFrame" src="http://192.168.22.78:5438/face_login.html" onload="sendMessage()" style="width: 100%; height: 600px;"></iframe>
+
+<!--Bootstrap 輸入框-->
+<div class="input-group">
+<input id="input_message" class="form-control input-lg" placeholder="請輸入傳輸字串" type="text">
+<span class="input-group-btn">
+<button id="submit_message" class="btn btn-primary btn-lg" style="margin-left:20px;">輸入</button>
+</span>
+</div>
+
+<script>
+//<![CDATA[
+function sendMessage() {
+// 送出字串
+$("#submit_message").click(function() {
+submit_message();
+});
+}
+
+// 傳送訊息到 IFRAME 網域
+function submit_message() {
+    // 發送訊息 要取得資料
+    // window.frames["WFU_frame"].postMessage($("#input_message").val(), "https://demo.wfublog.com/p/cross-domain-postmessage-iframe.html");
+    window.frames["faceLoginFrame"].postMessage($("#input_message").val(), "http://192.168.22.78:5438/face_login.html");
+    $("#input_message").val("");
+}
+
+// 監聽 IFRAME 網域回傳的訊息
+window.addEventListener("message", function(e) {
+    console.log("iframe from: " + e.origin);
+    // 加強安全性 判斷數據發送方是否為可靠的網域; 不安全的網域不處理
+    if (e.origin.indexOf("192.168.22.78") < 0) {
+        return;
+    }
+    var data = e.data;
+    // 彈跳訊息框顯示回傳的筆數
+    alert("收到 ifrma 傳來: " + data);
+});
+
+window.onload = function () {
+    // send init message directly, 初始發訊息以建立連線
+    window.frames["faceLoginFrame"].postMessage("123", "http://192.168.22.78:5438/face_login.html");
+}
+
+</script>

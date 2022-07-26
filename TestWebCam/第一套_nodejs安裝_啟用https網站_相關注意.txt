@@ -1,0 +1,90 @@
+===第一套範例使用到的檔案=========
+WebCam.js
+www/WebCam.html
+www/main.js
+www/styles.css
+key.pem
+csr.pem
+cert.pem
+
+===本例網站是建立在資料夾 /home/pi/TestWebCam ============
+$ npm init (用來產生 package.json 紀錄檔)
+$ sudo -i (切換到 root)
+# cd /home/pi/TestWebCam
+# npm install express
+# npm install socket.io@2.4.0
+# npm audit fix --force
+# npm install fs
+# exit
+
+---接下來要建立 https 網站, 需要產生私鑰, 建立憑證---
+---參考網站--> https://adamtheautomator.com/https-nodejs/
+---開發階段可以使用自己簽發的憑證, 步驟如下:
+(1)產生 key.pem:
+  $ openssl genrsa -out key.pem
+(2)產生 csr.pem:
+  $ openssl req -new -key key.pem -out csr.pem
+
+===過程中只輸入 TW, Taipei, Taipei, 其他空白============
+Country Name (2 letter code) [AU]:TW
+State or Province Name (full name) [Some-State]:Taipei
+Locality Name (eg, city) []:Taipei
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+-------------------------------------------------------
+
+(3)產生 cert.pem:
+  $ openssl x509 -req -days 9999 -in csr.pem -signkey key.pem -out cert.pem
+===完成的話, 會顯示如下訊息:============
+ey.pem -out cert.pem
+Signature ok
+subject=C = TW, ST = Taipei, L = Taipei, O = Internet Widgits Pty Ltd
+Getting Private key
+----------------------------------------
+
+===在 WebCam.js 程式中, 要啟動 https 網站, 關鍵是這一段:============
+https
+  .createServer(
+		// Provide the private and public key to the server by reading each
+		// file's content with the readFileSync() method.
+    {
+      key: fs.readFileSync("key.pem"),
+      cert: fs.readFileSync("cert.pem"),
+    },
+    app
+  )
+  .listen(4000, () => {
+    console.log("serever is runing at port 4000");
+  });
+--------------------------------------------------------------------
+
+
+(4)啟動網站:
+$ node WebCam.js (要停止的話按 Ctrl+C)
+
+(5)在 Chrome 瀏覽器輸入網址-->
+https://192.168.22.78:4000/WebCam.html
+
+(6)test1.js 只是簡單測試是否能獲取前端的 camera, 測試步驟:
+   a.)啟動網站:
+      $ node test1.js (要停止的話按 Ctrl+C)
+   b.)Chrome 瀏覽器輸入網址-->
+      http://192.168.22.78:5438/
+      
+      可以的話, 會 alert 顯示 "hi, we can access the camera"
+      (因為 http 是不安全網站, 因此應該不行, 臨時修正法如下(7)設定:)
+
+(7)Chrome 若要暫時將某一 http 網站視同安全(https)網站, 方法參考以下網址:
+   https://blog.clarence.tw/2020/10/29/solve-the-undefined-problem-of-getusermedia/
+   a.)在 Chrome 網址列輸入--> chrome://flags/#unsafely-treat-insecure-origin-as-secure
+   b.)設定下面這個參數:
+        Insecure origins treated as secure--> Enabled
+        --> 方框內輸入要視為安全的網站: http://192.168.22.78:5438
+        --> Relaunch

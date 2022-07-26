@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>臉部識別登入</title>
+<style type="text/css">
+body {
+  display: flex;
+}
+
+.btnArea {
+  width: 30%;
+  margin: auto;
+}
+
+.btn {
+	font-family: "微軟正黑體", "黑體-繁", sans-serif;
+	padding:  10%;/* 10px 15px; */
+	background: #4479BA;
+	color: #FFF;
+	border-radius: 4px;
+	border: solid 1px #20538D;
+	text-decoration: none;
+  font-size: 4rem;
+  /* width: 30%; */
+  /* font-size: auto; */
+}
+
+.btn:hover {
+    background: #356094;
+}
+
+.imgArea {
+  margin: auto;
+}
+
+h2 {
+  margin-top: 15%;
+  font-size: 30px;
+}
+</style>
+</head>
+<body>
+<div class="imgArea">
+  <img src="" id="stream">
+</div>
+<div class="btnArea">
+  <!-- <h1>臉部識別登入</h1> -->
+  <p><a class="btn" id="startBtn">開始拍照</a></p>
+  <p><a class="btn" id="stopBtn">識別登入</a></p>
+  <h2 id="infoLabel"></h2>
+</div>
+
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io.connect();
+var userName = '';
+var userToken = 0;
+var mainFrame;
+// 隱藏 stop button
+$('#stopBtn').hide();
+
+// ---原方法使用檔案路徑讀取與顯示照片---
+// socket.on('liveCam', function(url) {
+//   $('#stream').attr('src', 'images/' + url);
+// });
+
+// ---新方法使用串流顯示照片---
+socket.on('liveCam', function(data) {
+    // console.log(data); // 監看用
+    imgData = 'data:image/jpeg;base64,' + data
+    // console.log("imgData= " + imgData) // 監看用
+    // imageElm = document.getElementById("stream");
+    // imageElm.src = imgData;
+    // ---以下是 jQuery 寫法, 以上是 javascript 寫法---
+    $('#stream').attr('src', imgData);
+
+});
+
+$('#startBtn').on('click', function () {
+  document.getElementById("infoLabel").innerHTML = "拍照中......";
+  socket.emit('start');
+  $('#startBtn').hide();
+  $('#stopBtn').show();
+
+});
+
+$('#stopBtn').on('click', function () {
+  userName = 'unknown';
+  document.getElementById("infoLabel").innerHTML = "臉部識別中......";
+  socket.emit('stop');
+  $('#stopBtn').hide();
+  // document.getElementById("startBtn").innerHTML = "識別中...";
+  // $('#startBtn').innerHTML="識別中...";
+  // $('#startBtn').show();
+
+});
+
+//人臉識別完成, 取得 userName 並顯示識別後照片
+//取得 userName
+socket.on('userName',function(data) {
+  userName = data;
+});
+//取得 userToken
+socket.on('userToken',function(data) {
+  userToken = data;
+});
+//顯示照片
+socket.on('afterCheck', function(url) {
+  $('#stream').attr('src', 'images/' + url);
+  if (userName == 'unknown' || userName == '') {
+      strMsg = "無法辨識!";
+  } else {
+      // strMsg = "臉部識別完成! " + userName + "<br>" + userToken // 顯示 userToken 觀察用
+      strMsg = "臉部識別完成! " + userName
+  }
+  $('#startBtn').show();
+  document.getElementById("infoLabel").innerHTML = strMsg;
+  if (strMsg.match('臉部識別完成')!=null) {
+      // 發出登入頁面請求 (跳轉頁面行不通, 因為跳不出 iframe, 改用透過 iframe 傳訊息給母網頁的方法)
+      // console.log("跳轉登入");
+      // strForward = "location.href='https://tw.yahoo.com/'";
+      // strForward = "location.href='https://192.168.22.98:8080/Demo/user_page.jsp?userName=" + userName + "'";
+      // setTimeout(strForward,2000); // 2秒後跳轉頁面
+      // ---以上方法失敗, 以下成功---
+      // ------以下使用 iframe 傳訊息, 將 userName 傳給前端母網頁------
+      // mainFrame.source.postMessage(userName, mainFrame.origin);
+      // ------以下使用 iframe 傳訊息, 將 userToken 傳給前端母網頁------
+      mainFrame.source.postMessage(userToken, mainFrame.origin);
+  }
+    
+});
+
+// 透過前端 iframe 傳訊息的方法
+// 設定計數器, 起始值為 0
+// var count = 0;
+// 監聽母視窗傳來的訊息
+window.addEventListener('message', function(e) {
+  // 判斷數據發送方是否為可靠的地址
+  // if (e.origin.indexOf("www.wfublog.com") < 0) {
+  // return;
+  // }
+  console.log("母窗體from: " + e.origin);
+  console.log("母窗體傳來data: " + e.data);
+  mainFrame = e
+  // 計數器 +1
+  // count++;
+  // 回傳計數器數值
+  // e.source.postMessage("已輸入 " + count + " 筆資料", e.origin);
+});
+
+</script>
+</body>
+</html>

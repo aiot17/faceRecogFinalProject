@@ -1,0 +1,237 @@
+(A)樹莓派啟動 Node.js 網站的步驟:
+  (1)切換到 aiot17 料夾:
+     $ cd ~/aiot17 
+  (2)起動網站主程式:
+     $ node face_login.js
+  (3)結束按 Ctrl+C
+
+(B)前端 Chrome 瀏覽器操作:
+  (1)單純操作拍照與人臉識別, 輸入網址:
+     http://192.168.22.78:5438/face_login.html
+  (2)若要將上述網頁嵌入 iframe, 並與母網頁做資料傳遞測試, 則輸入網址:
+     http://192.168.22.78:5438/test_iframe/test_iframe.html
+     (a)在 iframe 裡正常操作拍照與人臉識別, 在母網頁會看到上方 alert 提示從 iframe 傳來的訊息.
+     (b)在左下方母網頁的文字方塊輸入任意字(例如: abc), 按 "輸入"鍵, 則可以在 F12 console 看到母網頁傳入 iframe 的訊息.
+
+
+(C)人臉識別系統檔案:
+  (1)face_login.js
+     -.這是 Node.js 網站的主檔, 啟動網站要執行這個檔案. 
+     -.啟動指令: $ node face_login.js
+     -.結束按 Ctrl+C
+     
+  (2)ispan_camera.py
+     -.拍照的 python 程式檔.
+     -.呼叫指令: $ python3 ispan_camera.py -c haarcascades/haarcascade_frontalface_alt.xml -o www/images/
+       (-c 參數是人臉偵測 Model 檔, -o 參數是照片存檔路徑)
+     -.每拍一張會直接傳遞照片串流給 nodejs, 然後傳遞到前端顯示.
+     -.在網站運行過程中, 是由 face_login.js 自動呼叫執行
+  
+  (3)recognize_face.py
+     -.人臉識別的 python 程式.
+     -.呼叫指令: $ python3 recognize_face.py -i www/images/photoCheck.png
+       (-i 參數是要被識別的照片檔案路徑, 其實還有其他參數, 只是使用內部預設值)
+     -.在網站運行過程中, 是由 face_login.js 自動呼叫執行
+
+  (4)haarcascades/ 資料夾:
+     -.path to where the face cascade resides.
+     -.一些人臉偵測的 Model xml 檔, 用來偵測是否有人臉.
+     -.目前使用 'haarcascades/haarcascade_frontalface_alt.xml' 這個 Model 檔.
+     -.拍照程式 ispan_camera.py 會用到.
+
+  (5)face_detection_model/ 資料夾:
+     -.path to OpenCV's deep learning face detector.
+     -.用來偵測有無人臉的 Model.
+     -.人臉識別程式 recognize_face.py 會用到.
+
+  (6)openface_nn4.small2.v1.t7
+     -.OpenCV's deep learning face embedding model
+     -.用來產生 128d(維度) 人臉特徵的 model.
+     -.人臉識別程式 recognize_face.py 會用到.
+
+  (7)output/recognizer.pickle
+     -.path to model trained to recognize faces.
+     -.已訓練好的, 用來識別住戶人臉的 Model 檔.
+     -.人臉識別程式 recognize_face.py 會用到.
+
+  (8)output/le.pickle
+     -.path to label encoder.
+     -.已訓練好的住戶標籤編碼檔(也就是住戶帳號編碼).
+     -.人臉識別程式 recognize_face.py 會用到.
+
+  (9)www/ 資料夾:
+     -.放置靜態網頁的路徑.
+     -.face_login.html (人臉識別登入的網頁)
+
+  (10)www/images/ 資料夾:
+     -.拍照程式 ispan_camera.py 儲存照片的路徑.
+     -.人臉識別程式 recognize_face.py 抓取照片來識別的路徑, 以及識別結果圖片的儲存路徑.
+
+  (11)node_module/ 資料夾:
+     -.npm install 安裝的套件會放在這個資料夾內
+
+  (12)package.json
+     -.可在裡面查詢 npm install 已安裝的套件名稱與版本號.
+
+(D)套件版本注意事項:
+  (1)版本檢查:
+     -. $ node -v (檢查版本, 目前是 v12.22.5)
+     -. $ npm -v (檢查版本, 目前是 7.5.2)
+  (1)nodejs 套件:
+     -.express: 4.18.1 [$ sudo npm install express]
+     -.socket.io: 2.4.0(目前一定要裝 2.4.0版)[$ sudo npm install socket.io@2.4.0]
+
+  (2)python 套件:
+     -.python-socketio: 4.4.0(目前一定要裝這個 4.4.0版)[$ sudo pip3 install python-socketio==4.4.0]
+     -.python-engineio: 3.14.2(目前一定要裝這個 3.14.2版)[$ sudo pip3 install python-engineio==3.14.2]
+     -.numpy: 1.22.4
+     -.imutils: 0.5.4
+     -.[$ sudo apt-get install libatlas-base-dev](視需要安裝)
+     -.[$ sudo pip install opencv-python](安裝 opencv for python, 目前裝的是 opencv-contrib-python 4.6.0.66)
+
+(E)其他參考檔案說明:
+  (1)aiot17/test_stream.js
+     aiot17/ispan_camera_stream.py
+     aiot17/www/test_stream.html
+
+     (這是要測試影像串流的基本傳輸功能用的)
+
+     用法:
+       -.$ cd ~/aiot17       
+       -.$ node test_stream.js (啟動網站)
+       -.$ python3 ispan_camera_stream.py (要手動啟動拍照程式)
+       -.在 chrome 瀏覽器輸入網址: http://192.168.22.78:5438/test_stream.html
+         即可測試拍照串流.
+
+  (2)lbpcascades/ 資料夾:
+     -.一些偵測人臉的 Model, 此專案未用到.
+
+  (3)WebCam/ 資料夾:
+     -.內有 3 個檔案:
+       1.)WebCam.html
+       2.)style.css
+       3.)main.js
+
+     (這是用來測試 RTC 影像串流用的)
+
+     用法:
+       -.運行 WebCam.html 即可. 電腦或樹莓派要有相機.
+       -.注意: 目前測試是本機運行有效, 但是在 Web Server 透過另一台前端電腦運行則無效.
+
+  (4)http傳訊參考/ 資料夾:
+     -.內有 2 個檔案
+       1.)postapp.js
+       2.)index.html
+
+     (這是基本的 Node.js 用 http 做傳訊測試.)
+     
+     用法:
+       -.用指令開啟 Node.js 網站--> c:\Shared\AIOT17\http傳訊參考>node postapp.js  (要結束的話按 Ctrl+C)
+       -.在 Chrome 瀏覽器輸入網址(這裡是本機測試)--> http://localhost:5000/
+       -.在網頁上輸入 First Name:(例如: Azen), Last Name:(例如: Lu), 按'提交'按鈕.
+       -.正常的話會收到後端 postapp.js 傳來的訊息.(例如: Azen Lu Submitted Successfully!)
+
+
+  (5)images/ 資料夾:
+     -.這原本是要給 python 拍照程式存放照片檔案的資料夾, 本專題沒用到.
+
+  (6)models/ 資料夾:
+     -.這是 Node.js 上課的範例, 是 MongoDB 資料庫存取的例子. 本專題沒用到.
+
+  (7)其他 Node.js 上課範例的資料夾:
+      public/
+      public2/
+      routes/
+      txt/
+      views/
+
+  (8)備份檔/ 資料夾
+     -.放一些本專題開發過程中的程式備份.
+
+  (9)照相用/ 資料夾
+     -.內有 1 個程式檔: ispan_camera_continue.py
+       (這是 OpenCV 上課時, 用來拍照的範例程式)
+
+  (10)adserver.js
+      -.這是 Node.js 上課例程. 是基本的網站例程.
+      
+     用法如下:
+       -.開啟 Node.js 網站--> c:\Shared\AIOT17>node adserver.js  (結束按 Ctrl+C)
+       -.在 Chrome 瀏覽器輸入網址--> http://localhost:5000/
+          會看到訊息: This is Home Page.
+       -.在 Chrome 瀏覽器輸入網址--> http://localhost:5000/student
+          會看到訊息: This is student Page.
+       -.在 Chrome 瀏覽器輸入網址--> http://localhost:5000/admin
+          會看到訊息: This is admin Page.
+
+  (11)index.js
+      www/index.html
+      -. 這 2 個檔案是 Node.js 上課的串流視訊範例(使用存檔再傳送檔案的方法).
+
+      用法如下:
+        (1)切換到 aiot17 料夾:
+             $ cd ~/aiot17 
+        (2)起動網站主程式:
+             $ node index.js
+             (要結束的話按 Ctrl+C)
+        
+        (3)在 Chrome 瀏覽器輸入網址--> http://192.168.22.78:5438/ 
+        (4)點 "開始串流" 按鈕, 開始顯示照片.(會有卡頓延遲, 是因為照片存檔再傳送, 速度較慢)
+        (5)點 "結束串流" 按鈕, 停止照片傳送.
+
+  (12)Socket_test_python client_Java Web Server.zip
+      -.這個壓縮檔裡面是 socket 通訊範例, python 是 client 端, Java Web Server 是 server 端.
+      -.裡面有測試使用說明.
+      -.裡面的主要檔案:
+        (1)python 程式檔-->
+             test_socket.py
+        (2)Java Web 專案(要匯入 eclipse 開啟), 主要是 3 個檔案-->
+             SocketTest\src\main\java\abc\com\MySocketServlet.java
+             SocketTest\src\main\webapp\index.html
+             SocketTest\src\main\webapp\WEB-INF\web.xml
+
+  (13)杰哥_recognize_demoUse.py
+      杰哥2_recognize_demoUse.py
+      杰哥3_recognize_demoUse.py
+      杰哥4_recognize_face.py
+      杰哥5_recognize_demoUse.py
+      -.以上是杰哥提供的一些 python socket(與 Java Web Server), socketio(與 Node.js server) 通訊參考程式.
+
+  (14)test_socketio.py
+      -.這是一支 python 用 socketio 做 client 端, 與 Node.js server 做通訊的簡單測試程式.
+      -.這程式可以和本專題的 face_login.js 做通訊測試, 步驟如下:
+        (1)起動 Node.js 網站主程式:
+             $ node face_login.js  (要結束的話按 Ctrl+C)
+        (2)啟動這支 python 程式:
+             $ python3 test_socketio.py
+        (3)有正常連通的話, 會看到 Node.js console 畫面顯示-->
+             connected from python
+             get userName from python-->abc
+           這兩行訊息.
+
+  (15)影像串流安裝指南_樹莓派.txt
+      -.熊妹幫忙整理的, 要運行 Node.js, python 之間的 socket.io 影像串流通訊, 需要安裝的項目.
+
+
+      
+      
+      
+      
+
+
+
+
+
+
+     
+
+
+
+
+       
+
+
+
+
+
+

@@ -1,0 +1,9 @@
+node -v (檢查版本, 目前是 v12.22.5)
+npm -v (檢查版本, 目前是 7.5.2)
+sudo npm install express
+sudo npm install socket.io@2.4.0 (目前一定要這個版本)
+sudo pip3 opencv-python
+sudo pip3 install numpy
+sudo apt-get install libatlas-base-dev
+sudo pip3 install python-socketio==4.4.0 (目前一定要這個版本)
+sudo pip3 install python-engineio==3.14.2 (目前一定要這個版本)

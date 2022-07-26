@@ -1,0 +1,36 @@
+===第二套範例使用的檔案============
+WebCam2Py.js
+WebCam2.py
+key.pem
+csr.pem
+cert.pem
+www/WebCam2Py.html
+www/main2Py.js
+www/styles.css
+
+
+說明如下:
+(1)用途: 這套例程是演示如何從前端相機取得照片, 然後以 socketio 傳送串流的方式, 傳給後端
+         Node.js 網站, 再傳送給後端 python 程式接收並顯示.
+
+(2)本例網站同樣是建立在樹莓派資料夾 /home/pi/TestWebCam 
+
+(3)測試操作步驟:
+   a.)啟動網站:
+      $ node WebCam2Py.js (要停止網站的話按 Ctrl+C)
+
+   b.)啟動 python 接收端:
+      $ python3 WebCam2.py (要停止的話, 滑鼠在圖像上點一下, 再按 'q', 或直接按 Ctrl+C)
+
+   c.)啟動前端 chrome 瀏覽器, 在網址列輸入:
+      https://192.168.22.78:4000/WebCam2Py.html
+      (瀏覽器還是會提示不安全網站, 這時要進入進階設定, 選擇繼續進入這個網站, 即可繼續操作.)
+
+      c1.)點擊 "傳送一次照片", 能看到 python 顯示一張照片, 可以一直按, 會看到 python 的照片
+          也一直改變.
+
+      c2.)點擊 "連續傳送串流", 即可看到 python 顯示連續的影像, 點擊 "停止傳送" 則會停止.
+          python 更新連續串流的速度, 大約 7fps 左右.
+
+(4)若在 PC 要啟動 Node.js 網站的話, 可以將 key.pem, csr.pem, cert.pem 三個鑰匙檔放在與 WebCam2Py.js
+   同一資料夾, 可以啟動 https 安全網站.
